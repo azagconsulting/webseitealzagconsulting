@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `CustomerMessage` MODIFY `status` ENUM('DRAFT', 'QUEUED', 'SENDING', 'SENT', 'FAILED', 'SPAM') NOT NULL DEFAULT 'SENT';

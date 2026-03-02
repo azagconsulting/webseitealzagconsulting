@@ -1,7 +1,6 @@
-"use client";
+/* eslint-disable @next/next/no-page-custom-font */
 
 import Script from "next/script";
-import { useEffect, useMemo, useState } from "react";
 
 const stylesheets = [
   "/alzag-consulting/assets/vendors/bootstrap/css/bootstrap.min.css",
@@ -45,61 +44,7 @@ const scripts = [
   "/alzag-consulting/assets/js/ogency.js",
 ];
 
-function normalizeHtml(rawHtml: string) {
-  const bodyMatch = rawHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-  const body = bodyMatch?.[1] ?? rawHtml;
-
-  let normalized = body.replace(/<script[\s\S]*?<\/script>/gi, "");
-
-  normalized = normalized
-    .replace(/(href|src)="assets\//g, '$1="/alzag-consulting/assets/')
-    .replace(/url\(assets\//g, "url(/alzag-consulting/assets/")
-    .replace(/href="\/überuns\.html"/g, 'href="/ueberuns"')
-    .replace(/href="überuns\.html"/g, 'href="/ueberuns"')
-    .replace(/(href|src)="(?!https?:|mailto:|tel:|#|\/)([^"]+\.html)"/g, (_, attr, target) => {
-      if (target === "überuns.html") {
-        return `${attr}="/ueberuns"`;
-      }
-      if (target === "login.html") {
-        return `${attr}="/mitarbeiterzugang"`;
-      }
-      return `${attr}="/alzag-consulting/${target}"`;
-    });
-
-  return normalized;
-}
-
-export function StaticAlzagIndexPage() {
-  const [content, setContent] = useState<string>("");
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    void fetch("/alzag-consulting/index.html", { cache: "no-store" })
-      .then((res) => res.text())
-      .then((html) => {
-        if (!active) return;
-        setContent(normalizeHtml(html));
-        setLoaded(true);
-      })
-      .catch(() => {
-        if (!active) return;
-        setContent("");
-        setLoaded(true);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const scriptNodes = useMemo(
-    () =>
-      scripts.map((src) => (
-        <Script key={src} src={src} strategy="lazyOnload" />
-      )),
-    [],
-  );
-
+export function AlzagAboutAssets() {
   return (
     <>
       <link rel="preconnect" href="https://fonts.gstatic.com" />
@@ -110,14 +55,9 @@ export function StaticAlzagIndexPage() {
       {stylesheets.map((href) => (
         <link key={href} rel="stylesheet" href={href} />
       ))}
-
-      {loaded ? (
-        <div dangerouslySetInnerHTML={{ __html: content }} />
-      ) : (
-        <div className="min-h-screen bg-slate-950" />
-      )}
-
-      {scriptNodes}
+      {scripts.map((src) => (
+        <Script key={src} src={src} strategy="lazyOnload" />
+      ))}
     </>
   );
 }

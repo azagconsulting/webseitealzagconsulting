@@ -1,6 +1,27 @@
 (function ($) {
   "use strict";
 
+  // Fallback: hide preloader even when later plugin code throws.
+  function hidePreloaderFallback() {
+    var preloader = document.querySelector(".preloader");
+    if (!preloader) {
+      return;
+    }
+    preloader.style.transition = "opacity 0.4s ease";
+    preloader.style.opacity = "0";
+    preloader.style.pointerEvents = "none";
+    setTimeout(function () {
+      preloader.style.display = "none";
+    }, 450);
+  }
+
+  if (document.readyState === "interactive" || document.readyState === "complete") {
+    setTimeout(hidePreloaderFallback, 0);
+  }
+  window.addEventListener("DOMContentLoaded", hidePreloaderFallback);
+  window.addEventListener("load", hidePreloaderFallback);
+  setTimeout(hidePreloaderFallback, 4000);
+
   if ($(".contact-form-validated").length) {
     $(".contact-form-validated").validate({
       // initialize the plugin

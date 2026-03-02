@@ -36,6 +36,11 @@ const nextConfig: NextConfig = {
   async rewrites() {
     const rewrites = [];
 
+    rewrites.push({
+      source: "/überuns.html",
+      destination: "/ueberuns",
+    });
+
     if (proxyTarget) {
       rewrites.push({
         source: "/api/v1/:path*",

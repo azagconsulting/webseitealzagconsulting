@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /404.html
+Disallow: /login.html
+Disallow: /datenschutz.html
+Disallow: /demo-landing.html
+
+Sitemap: https://www.alzag-consulting.de/sitemap.xml

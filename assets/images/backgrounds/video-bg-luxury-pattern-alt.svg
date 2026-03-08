@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1289 564" role="img" aria-labelledby="title desc">
+  <title id="title">Dunkles Luxusmuster Variante 2</title>
+  <desc id="desc">Geometrisches Muster in dunklen Toenen mit dezenten goldenen Akzenten.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#11141a" />
+      <stop offset="50%" stop-color="#0c0f14" />
+      <stop offset="100%" stop-color="#1a1712" />
+    </linearGradient>
+    <pattern id="diamond" width="84" height="84" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="84" height="84" fill="none" />
+      <path d="M0 42 H84 M42 0 V84" stroke="#b89763" stroke-opacity="0.07" stroke-width="1.1" />
+      <rect x="20" y="20" width="44" height="44" fill="none" stroke="#d1b07d" stroke-opacity="0.05" stroke-width="0.8" />
+    </pattern>
+    <radialGradient id="goldGlow" cx="0.8" cy="0.16" r="0.55">
+      <stop offset="0%" stop-color="#c8a56f" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#c8a56f" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="softLight" cx="0.2" cy="0.9" r="0.75">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.04" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <rect width="1289" height="564" fill="url(#bg)" />
+  <rect width="1289" height="564" fill="url(#diamond)" opacity="0.6" />
+  <rect width="1289" height="564" fill="url(#goldGlow)" />
+  <rect width="1289" height="564" fill="url(#softLight)" />
+
+  <g fill="none" stroke="#d7b77f" stroke-opacity="0.06">
+    <path d="M0 110 C180 50, 340 170, 520 110 C700 50, 860 170, 1040 110 C1130 80, 1210 85, 1289 105" />
+    <path d="M0 282 C170 235, 355 328, 540 276 C720 225, 900 326, 1075 276 C1155 252, 1224 255, 1289 270" />
+    <path d="M0 455 C180 410, 345 500, 520 452 C700 402, 875 496, 1060 450 C1140 430, 1215 432, 1289 446" />
+  </g>
+</svg>

@@ -24,6 +24,9 @@
     <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicons/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicons/favicon-16x16.png" />
     <link rel="manifest" href="assets/images/favicons/site.webmanifest" />
+    <link rel="icon" type="image/x-icon" href="assets/images/favicons/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="assets/images/favicons/favicon-blackbg.ico" media="(prefers-color-scheme: light)" />
+    <link rel="shortcut icon" href="assets/images/favicons/favicon.ico" />
 
     <!-- fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -254,18 +257,23 @@
             <div class="sticky-header__content"></div><!-- /.sticky-header__content -->
         </div><!-- /.stricky-header -->
         <main id="main-content">
-        <section class="page-header">
+        <section class="page-header page-header--video page-header--about page-header--slider-overlay" aria-label="Leistungsdetail Titelbereich">
+            <div class="page-header__video-wrap" aria-hidden="true">
+                <video class="page-header__video" autoplay muted loop playsinline preload="metadata" poster="assets/images/backgrounds/slider-1-bg-1.png">
+                    <source src="assets/images/backgrounds/backgroundvid.mp4" type="video/mp4">
+                </video>
+            </div>
             <div class="page-header__bg"></div>
             <!-- /.page-header__bg -->
             <div class="page-header__overlay"></div>
             <!-- /.page-header__bg -->
             <div class="container">
-                <ul class="page-header__breadcrumb list-unstyled">
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="services.html">Services</a></li>
-                    <li><span>Service Details</span></li>
+                <h1 class="page-header__title wow fadeInUp animated" data-wow-delay="120ms">Web designing</h1><!-- /.page-title -->
+                <ul class="page-header__breadcrumb list-unstyled wow fadeInUp animated" data-wow-delay="240ms">
+                    <li><a href="index.html">Startseite</a></li>
+                    <li><a href="services.html">Leistungen</a></li>
+                    <li><span>Leistungsdetail</span></li>
                 </ul><!-- /.page-breadcrumb list-unstyled -->
-                <h1 class="page-header__title">Web designing</h1><!-- /.page-title -->
             </div><!-- /.container -->
         </section><!-- /.page-header -->
         <!-- Services Details Start -->
@@ -366,13 +374,13 @@
             <div class="container">
                 <div class="main-footer__top wow fadeInUp animated" data-wow-delay="100ms">
                     <a href="index.html" class="main-footer__logo">
-                        <img src="assets/images/footer-logo.png" alt="ogency" width="150" height="60" loading="lazy" decoding="async">
+                        <img src="assets/images/footer-logo.png" alt="Alzag Consulting" width="150" height="60" loading="lazy" decoding="async">
                     </a><!-- /.footer-logo -->
                     <div class="main-footer__social">
-                        <a href="https://twitter.com/"><i class="fab fa-twitter"></i></a>
-                        <a href="https://www.facebook.com/"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.pinterest.com/"><i class="fab fa-pinterest-p"></i></a>
-                        <a href="https://www.instagram.com/"><i class="fab fa-instagram"></i></a>
+                        <a href="https://twitter.com/" aria-label="Twitter"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+                        <a href="https://www.facebook.com/" aria-label="Facebook"><i class="fab fa-facebook" aria-hidden="true"></i></a>
+                        <a href="https://www.pinterest.com/" aria-label="Pinterest"><i class="fab fa-pinterest-p" aria-hidden="true"></i></a>
+                        <a href="https://www.instagram.com/" aria-label="Instagram"><i class="fab fa-instagram" aria-hidden="true"></i></a>
                     </div><!-- /.footer-social -->
                 </div><!-- footer-top -->
                 <div class="row main-footer__bottom">
@@ -406,7 +414,7 @@
                         </div><!-- /.footer-widget -->
                     </div>
                 </div><!-- /.row -->
-                <p class="main-footer__copyright wow fadeInUp animated" data-wow-delay="500ms">© Copyright <span class="dynamic-year"></span><!-- /.dynamic-year --> by <a href="index.html">Ogency Template</a></p>
+                <p class="main-footer__copyright wow fadeInUp animated" data-wow-delay="500ms">© <span class="dynamic-year"></span><!-- /.dynamic-year --> Alzag Consulting. Alle Rechte vorbehalten.</p>
             </div><!-- /.container -->
         </footer><!-- /.main-footer -->
 

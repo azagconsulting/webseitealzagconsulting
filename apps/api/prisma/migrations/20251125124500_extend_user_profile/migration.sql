@@ -1,0 +1,11 @@
+-- AlterTable
+ALTER TABLE `User`
+    ADD COLUMN `bio` TEXT NULL,
+    ADD COLUMN `calendlyUrl` VARCHAR(255) NULL,
+    ADD COLUMN `headline` VARCHAR(191) NULL,
+    ADD COLUMN `jobTitle` VARCHAR(191) NULL,
+    ADD COLUMN `linkedinUrl` VARCHAR(255) NULL,
+    ADD COLUMN `location` VARCHAR(191) NULL,
+    ADD COLUMN `phone` VARCHAR(64) NULL,
+    ADD COLUMN `pronouns` VARCHAR(64) NULL,
+    ADD COLUMN `twitterUrl` VARCHAR(255) NULL;

@@ -1,0 +1,880 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id          String   @id @default(uuid())
+  name        String   @db.VarChar(191)
+  slug        String   @unique @db.VarChar(191)
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users                    User[]
+  trustedDevices           TrustedDevice[]
+  deviceVerificationTokens DeviceVerificationToken[]
+  leads                    Lead[]
+  leadUpdates              LeadUpdate[]
+  leadWorkflowSettings     LeadWorkflowSetting[]
+  customers                Customer[]
+  customerMessages         CustomerMessage[]
+  tenantSettings           TenantSetting[]
+  tasks                    Task[]
+  appointmentSlots         AppointmentSlot[]
+  appointmentTemplates     AppointmentTemplate[]
+  trackingSessions         TrackingSession[]
+  trackingEvents           TrackingEvent[]
+  vehicles                 Vehicle[]
+  serviceOrders            ServiceOrder[]
+  driveFiles               DriveFile[]
+  driveFolders             DriveFolder[]
+  googleDriveConnections   GoogleDriveConnection[]
+  workspaceProfile         WorkspaceProfile?
+  chatbotConfig            ChatbotConfig?
+  chatConversations        ChatConversation[]
+  chatMessages             ChatMessage[]
+  chatReadStates           ChatReadState[]
+}
+
+enum UserRole {
+  ADMIN
+  COORDINATOR
+  AGENT
+  VIEWER
+  CUSTOMER
+}
+
+enum LeadStatus {
+  NEW
+  QUALIFIED
+  IN_PROGRESS
+  WON
+  LOST
+  ARCHIVED
+}
+
+enum LeadPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum CustomerType {
+  PRIVATE
+  BUSINESS
+  FLEET
+}
+
+enum CustomerPackage {
+  STARTER
+  GROWTH
+  ENTERPRISE
+}
+
+enum VehicleFuelType {
+  GASOLINE
+  DIESEL
+  ELECTRIC
+  HYBRID
+  LPG
+  OTHER
+}
+
+enum VehicleTransmission {
+  MANUAL
+  AUTOMATIC
+}
+
+enum ServiceOrderStatus {
+  PLANNED
+  IN_SERVICE
+  COMPLETED
+  CANCELLED
+}
+
+enum CustomerMessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum CustomerMessageStatus {
+  DRAFT
+  QUEUED
+  SENDING
+  SENT
+  FAILED
+}
+
+enum MessageCategory {
+  ANGEBOT
+  KOSTENVORANSCHLAG
+  KRITISCH
+  KUENDIGUNG
+  WERBUNG
+  SONSTIGES
+}
+
+enum TaskStatus {
+  BACKLOG
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskBoard {
+  TEAM
+  MY
+}
+
+enum AppointmentSlotStatus {
+  FREE
+  BLOCKED
+}
+
+enum AppointmentTemplateRecurrence {
+  DAILY
+  WEEKLY
+}
+
+enum DriveScope {
+  USER
+  TEAM
+}
+
+enum DriveFolderKind {
+  GENERAL
+  CUSTOMERS_ROOT
+  CUSTOMER
+}
+
+enum ChatConversationType {
+  TEAM
+  DIRECT
+  CUSTOMER
+}
+
+enum TrackingEventType {
+  PAGE_VIEW
+  PAGE_EXIT
+  CLICK
+}
+
+enum TrafficSource {
+  DIRECT
+  ORGANIC
+  REFERRAL
+}
+
+model User {
+  id           String    @id @default(uuid())
+  tenantId     String
+  customerId   String?
+  email        String    @unique @db.VarChar(191)
+  passwordHash String    @db.VarChar(255)
+  firstName    String?   @db.VarChar(120)
+  lastName     String?   @db.VarChar(120)
+  avatarUrl    String?   @db.VarChar(512)
+  jobTitle     String?   @db.VarChar(191)
+  phone        String?   @db.VarChar(64)
+  location     String?   @db.VarChar(191)
+  headline     String?   @db.VarChar(191)
+  bio          String?   @db.Text
+  pronouns     String?   @db.VarChar(64)
+  linkedinUrl  String?   @db.VarChar(255)
+  twitterUrl   String?   @db.VarChar(255)
+  calendlyUrl  String?   @db.VarChar(255)
+  role         UserRole  @default(COORDINATOR)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  tenant                      Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer                    Customer?                 @relation("CustomerPortalUsers", fields: [customerId], references: [id], onDelete: SetNull)
+  assignedLeads               Lead[]                    @relation("LeadAssignee")
+  leadUpdates                 LeadUpdate[]
+  workflowSettings            LeadWorkflowSetting[]     @relation("LeadWorkflowSettingsAutoAssign")
+  blogPosts                   BlogPost[]
+  tasksAssigned               Task[]                    @relation("TaskAssignee")
+  tasksCreated                Task[]                    @relation("TaskCreator")
+  createdAppointmentSlots     AppointmentSlot[]         @relation("AppointmentSlotCreator")
+  bookedAppointmentSlots      AppointmentSlot[]         @relation("AppointmentSlotBooker")
+  createdAppointmentTemplates AppointmentTemplate[]     @relation("AppointmentTemplateCreator")
+  ownedMessages               CustomerMessage[]         @relation("MessageOwner")
+  passwordResetTokens         PasswordResetToken[]
+  trustedDevices              TrustedDevice[]
+  deviceVerificationTokens    DeviceVerificationToken[]
+  driveFiles                  DriveFile[]               @relation("DriveOwner")
+  uploadedDriveFiles          DriveFile[]               @relation("DriveUploader")
+  driveFolders                DriveFolder[]             @relation("DriveFolderOwner")
+  googleDriveConnections      GoogleDriveConnection[]
+  chatConversationsCreated    ChatConversation[]        @relation("ChatConversationCreator")
+  chatConversationMemberships ChatConversationMember[]
+  chatMessages                ChatMessage[]             @relation("ChatMessageSender")
+  chatReadStates              ChatReadState[]
+
+  @@index([tenantId])
+  @@index([customerId])
+}
+
+model Lead {
+  id           String       @id @default(uuid())
+  tenantId     String
+  fullName     String       @db.VarChar(191)
+  email        String       @db.VarChar(191)
+  company      String?      @db.VarChar(191)
+  phone        String?      @db.VarChar(64)
+  message      String?      @db.Text
+  source       String       @default("web") @db.VarChar(64)
+  status       LeadStatus   @default(NEW)
+  priority     LeadPriority @default(MEDIUM)
+  routingLabel String?      @db.VarChar(120)
+  assignedToId String?
+  processedAt  DateTime?
+  archivedAt   DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  tenant     Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignedTo User?             @relation("LeadAssignee", fields: [assignedToId], references: [id])
+  updates    LeadUpdate[]
+  messages   CustomerMessage[]
+
+  @@index([status])
+  @@index([assignedToId])
+  @@index([createdAt])
+  @@index([tenantId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  tenantId  String
+  userId    String
+  codeHash  String    @db.VarChar(191)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model TrustedDevice {
+  id         String    @id @default(uuid())
+  tenantId   String
+  userId     String
+  deviceHash String    @db.VarChar(191)
+  lastSeenAt DateTime  @default(now())
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceHash])
+  @@index([tenantId])
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model DeviceVerificationToken {
+  id         String    @id @default(uuid())
+  tenantId   String
+  userId     String
+  deviceHash String    @db.VarChar(191)
+  codeHash   String    @db.VarChar(191)
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([userId, deviceHash])
+}
+
+model Task {
+  id          String       @id @default(uuid())
+  tenantId    String
+  title       String       @db.VarChar(255)
+  description String?      @db.Text
+  status      TaskStatus   @default(BACKLOG)
+  priority    TaskPriority @default(MEDIUM)
+  board       TaskBoard    @default(TEAM)
+  assigneeId  String?
+  creatorId   String?
+  dueDate     DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignee User?  @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creator  User?  @relation("TaskCreator", fields: [creatorId], references: [id])
+
+  @@index([tenantId, board, status])
+  @@index([assigneeId])
+  @@index([creatorId])
+  @@index([createdAt])
+}
+
+model AppointmentSlot {
+  id                   String                @id @default(uuid())
+  tenantId             String
+  createdById          String?
+  bookedById           String?
+  customerId           String?
+  date                 String                @db.VarChar(10)
+  startTime            String                @db.VarChar(5)
+  endTime              String                @db.VarChar(5)
+  title                String                @db.VarChar(191)
+  status               AppointmentSlotStatus @default(FREE)
+  attendeeName         String?               @db.VarChar(191)
+  attendeeEmail        String?               @db.VarChar(191)
+  attendeePhone        String?               @db.VarChar(64)
+  meetingLink          String?               @db.VarChar(512)
+  bookingNotes         String?               @db.Text
+  cancelTokenHash      String?               @unique @db.VarChar(128)
+  cancelTokenExpiresAt DateTime?
+  canceledAt           DateTime?
+  canceledBy           String?               @db.VarChar(64)
+  cancelReason         String?               @db.VarChar(255)
+  bookedAt             DateTime?
+  reminderSentAt       DateTime?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdBy User?     @relation("AppointmentSlotCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  bookedBy  User?     @relation("AppointmentSlotBooker", fields: [bookedById], references: [id], onDelete: SetNull)
+  customer  Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, date])
+  @@index([tenantId, status])
+  @@index([createdById])
+  @@index([bookedById])
+  @@index([tenantId, customerId])
+  @@index([cancelTokenExpiresAt])
+  @@index([canceledAt])
+}
+
+model AppointmentTemplate {
+  id          String                        @id @default(uuid())
+  tenantId    String
+  createdById String?
+  title       String                        @db.VarChar(191)
+  startTime   String                        @db.VarChar(5)
+  endTime     String                        @db.VarChar(5)
+  status      AppointmentSlotStatus         @default(FREE)
+  recurrence  AppointmentTemplateRecurrence @default(WEEKLY)
+  weekdays    String?                       @db.VarChar(32)
+  createdAt   DateTime                      @default(now())
+  updatedAt   DateTime                      @updatedAt
+
+  tenant    Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdBy User?  @relation("AppointmentTemplateCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, recurrence])
+  @@index([tenantId, status])
+  @@index([createdById])
+}
+
+model LeadUpdate {
+  id        String     @id @default(uuid())
+  tenantId  String
+  leadId    String
+  userId    String?
+  status    LeadStatus
+  note      String?    @db.VarChar(255)
+  createdAt DateTime   @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lead   Lead   @relation(fields: [leadId], references: [id])
+  user   User?  @relation(fields: [userId], references: [id])
+
+  @@index([leadId, createdAt])
+  @@index([tenantId])
+}
+
+model LeadWorkflowSetting {
+  id                   String   @id @default(uuid())
+  tenantId             String
+  autoAssignUserId     String?
+  notifyEmail          String?  @db.VarChar(191)
+  autoResponderEnabled Boolean  @default(false)
+  autoResponderMessage String?  @db.Text
+  routingHeadline      String?  @db.VarChar(191)
+  routingDescription   String?  @db.VarChar(255)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  tenant         Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  autoAssignUser User?  @relation("LeadWorkflowSettingsAutoAssign", fields: [autoAssignUserId], references: [id])
+
+  @@index([tenantId])
+}
+
+model BlogPost {
+  id          String    @id @default(uuid())
+  title       String    @db.VarChar(191)
+  slug        String    @unique @db.VarChar(191)
+  excerpt     String?   @db.VarChar(320)
+  content     String    @db.Text
+  coverImage  String?   @db.VarChar(512)
+  featured    Boolean   @default(false)
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  authorId    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  author User? @relation(fields: [authorId], references: [id])
+
+  @@index([authorId])
+  @@index([published, publishedAt])
+}
+
+model Customer {
+  id               String       @id @default(uuid())
+  tenantId         String
+  name             String       @db.VarChar(191)
+  type             CustomerType @default(PRIVATE)
+  customerPackage  CustomerPackage @default(STARTER)
+  packageServices  Json?
+  email            String?      @db.VarChar(191)
+  phone            String?      @db.VarChar(64)
+  mobile           String?      @db.VarChar(64)
+  street           String?      @db.VarChar(191)
+  postalCode       String?      @db.VarChar(32)
+  city             String?      @db.VarChar(120)
+  preferredChannel String?      @db.VarChar(64)
+  marketingOptIn   Boolean      @default(false)
+  notes            String?      @db.Text
+  tags             Json?
+  totalSpendCents  Int          @default(0)
+  lastContactAt    DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  portalUsers      User[]            @relation("CustomerPortalUsers")
+  contacts         CustomerContact[]
+  vehicles         Vehicle[]
+  serviceOrders    ServiceOrder[]
+  messages         CustomerMessage[]
+  appointmentSlots AppointmentSlot[]
+  driveFolders     DriveFolder[]
+  chatConversations ChatConversation[]
+
+  @@index([tenantId])
+}
+
+model CustomerContact {
+  id         String   @id @default(uuid())
+  customerId String
+  name       String   @db.VarChar(191)
+  role       String?  @db.VarChar(120)
+  channel    String?  @db.VarChar(64)
+  email      String?  @db.VarChar(191)
+  phone      String?  @db.VarChar(64)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  customer Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  messages CustomerMessage[]
+
+  @@index([customerId])
+}
+
+model Vehicle {
+  id            String               @id @default(uuid())
+  tenantId      String
+  customerId    String
+  manufacturer  String?              @db.VarChar(120)
+  model         String?              @db.VarChar(120)
+  trim          String?              @db.VarChar(120)
+  licensePlate  String?              @db.VarChar(64)
+  vin           String?              @db.VarChar(191)
+  year          Int?
+  mileageKm     Int?
+  fuelType      VehicleFuelType?
+  transmission  VehicleTransmission?
+  color         String?              @db.VarChar(64)
+  lastServiceAt DateTime?
+  nextServiceAt DateTime?
+  notes         String?              @db.Text
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer      Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  serviceOrders ServiceOrder[]
+
+  @@index([tenantId])
+  @@index([customerId])
+}
+
+model ServiceOrder {
+  id             String             @id @default(uuid())
+  tenantId       String
+  customerId     String
+  vehicleId      String?
+  title          String             @db.VarChar(191)
+  concern        String?            @db.VarChar(255)
+  status         ServiceOrderStatus @default(PLANNED)
+  advisorName    String?            @db.VarChar(120)
+  technicianName String?            @db.VarChar(120)
+  scheduledAt    DateTime?
+  completedAt    DateTime?
+  odometerKm     Int?
+  estimateCents  Int?
+  totalCents     Int?
+  notes          String?            @db.Text
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  vehicle  Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@index([vehicleId])
+}
+
+model CustomerMessage {
+  id          String                   @id @default(uuid())
+  tenantId    String
+  ownerUserId String?
+  customerId  String?
+  leadId      String?
+  contactId   String?
+  direction   CustomerMessageDirection
+  status      CustomerMessageStatus    @default(SENT)
+  isSpam      Boolean                  @default(false)
+  subject     String?                  @db.VarChar(191)
+  preview     String?                  @db.VarChar(255)
+  body        String                   @db.Text
+  fromEmail   String?                  @db.VarChar(191)
+  toEmail     String?                  @db.VarChar(191)
+  externalId  String?                  @db.VarChar(191)
+  attachments Json?
+  sentAt      DateTime?
+  receivedAt  DateTime?
+  readAt      DateTime?
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+
+  // AI analysis fields
+  category   MessageCategory?
+  sentiment  String?          @db.VarChar(64)
+  urgency    String?          @db.VarChar(64)
+  summary    String?          @db.VarChar(512)
+  analyzedAt DateTime?
+  deletedAt  DateTime?
+
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer  Customer?        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  lead      Lead?            @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  contact   CustomerContact? @relation(fields: [contactId], references: [id])
+  ownerUser User?            @relation("MessageOwner", fields: [ownerUserId], references: [id])
+
+  @@index([customerId, createdAt])
+  @@index([contactId])
+  @@index([leadId, createdAt])
+  @@index([analyzedAt])
+  @@index([tenantId])
+  @@index([tenantId, direction, createdAt])
+  @@index([tenantId, isSpam, createdAt])
+  @@index([tenantId, ownerUserId])
+  @@index([tenantId, deletedAt])
+}
+
+model TenantSetting {
+  id        String   @id @default(uuid())
+  tenantId  String
+  key       String   @db.VarChar(191)
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, key])
+  @@index([tenantId])
+}
+
+model ChatbotConfig {
+  id            String   @id @default(uuid())
+  tenantId      String   @unique
+  apiKey        String?  @db.VarChar(255)
+  knowledgeBase String?  @db.Text
+  enabled       Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model TrackingSession {
+  id            String        @id @default(uuid())
+  tenantId      String
+  sessionKey    String        @db.VarChar(191)
+  trafficSource TrafficSource @default(DIRECT)
+  referrer      String?       @db.VarChar(512)
+  utmSource     String?       @db.VarChar(120)
+  utmMedium     String?       @db.VarChar(120)
+  firstPage     String?       @db.VarChar(255)
+  startedAt     DateTime      @default(now())
+  lastSeenAt    DateTime      @default(now())
+
+  tenant Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  events TrackingEvent[]
+
+  @@unique([tenantId, sessionKey])
+  @@index([tenantId, trafficSource])
+  @@index([tenantId, lastSeenAt])
+}
+
+model TrackingEvent {
+  id         String            @id @default(uuid())
+  tenantId   String
+  sessionId  String
+  type       TrackingEventType
+  path       String            @db.VarChar(255)
+  label      String?           @db.VarChar(255)
+  durationMs Int?
+  createdAt  DateTime          @default(now())
+
+  tenant  Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  session TrackingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, path, type, createdAt])
+  @@index([sessionId])
+}
+
+model DriveFolder {
+  id          String          @id @default(uuid())
+  tenantId    String
+  ownerUserId String?
+  scope       DriveScope
+  kind        DriveFolderKind @default(GENERAL)
+  parentId    String?
+  customerId  String?
+  systemKey   String?         @db.VarChar(64)
+  name        String          @db.VarChar(255)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  tenant    Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ownerUser User?         @relation("DriveFolderOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  parent    DriveFolder?  @relation("DriveFolderTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children  DriveFolder[] @relation("DriveFolderTree")
+  customer  Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  files     DriveFile[]
+
+  @@unique([tenantId, kind, systemKey])
+  @@unique([tenantId, customerId])
+  @@index([tenantId, scope])
+  @@index([ownerUserId])
+  @@index([parentId])
+  @@index([customerId])
+  @@index([tenantId, kind])
+}
+
+model DriveFile {
+  id           String     @id @default(uuid())
+  tenantId     String
+  ownerUserId  String?
+  uploadedById String
+  scope        DriveScope
+  folderId     String?
+  name         String     @db.VarChar(255)
+  storageKey   String     @db.VarChar(512)
+  mimeType     String     @db.VarChar(191)
+  size         Int
+  isDeleted    Boolean    @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  tenant        Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ownerUser     User?              @relation("DriveOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  uploadedBy    User               @relation("DriveUploader", fields: [uploadedById], references: [id], onDelete: Cascade)
+  folder        DriveFolder?       @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  workspaceLogo WorkspaceProfile[]
+  chatMessageAttachments ChatMessageAttachment[]
+
+  @@index([tenantId, scope, isDeleted])
+  @@index([ownerUserId])
+  @@index([uploadedById])
+  @@index([folderId])
+}
+
+model ChatConversation {
+  id            String               @id @default(uuid())
+  tenantId      String
+  type          ChatConversationType
+  systemKey     String               @db.VarChar(120)
+  title         String?              @db.VarChar(191)
+  customerId    String?
+  createdById   String?
+  lastMessageAt DateTime?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  tenant     Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer   Customer?                @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  createdBy  User?                    @relation("ChatConversationCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  members    ChatConversationMember[]
+  messages   ChatMessage[]
+  readStates ChatReadState[]
+
+  @@unique([tenantId, type, systemKey])
+  @@index([tenantId, type, lastMessageAt])
+  @@index([customerId])
+}
+
+model ChatConversationMember {
+  id             String   @id @default(uuid())
+  conversationId String
+  userId         String
+  createdAt      DateTime @default(now())
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId, conversationId])
+}
+
+model ChatMessage {
+  id             String    @id @default(uuid())
+  tenantId       String
+  conversationId String
+  senderId       String
+  body           String?   @db.Text
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  tenant       Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  conversation ChatConversation       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User                   @relation("ChatMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  attachments  ChatMessageAttachment[]
+  readStates   ChatReadState[]        @relation("ChatReadStateLastMessage")
+
+  @@index([conversationId, createdAt])
+  @@index([tenantId, createdAt])
+}
+
+model ChatMessageAttachment {
+  id          String   @id @default(uuid())
+  messageId   String
+  driveFileId String
+  name        String   @db.VarChar(255)
+  mimeType    String?  @db.VarChar(191)
+  size        Int?
+  createdAt   DateTime @default(now())
+
+  message  ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  driveFile DriveFile  @relation(fields: [driveFileId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@index([driveFileId])
+}
+
+model ChatReadState {
+  id                String   @id @default(uuid())
+  tenantId          String
+  conversationId    String
+  userId            String
+  lastReadMessageId String?
+  lastReadAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  conversation    ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReadMessage ChatMessage?     @relation("ChatReadStateLastMessage", fields: [lastReadMessageId], references: [id], onDelete: SetNull)
+
+  @@unique([conversationId, userId])
+  @@index([tenantId, userId, updatedAt])
+}
+
+model WorkspaceProfile {
+  tenantId       String   @id
+  companyName    String?  @db.VarChar(191)
+  legalName      String?  @db.VarChar(191)
+  industry       String?  @db.VarChar(191)
+  tagline        String?  @db.VarChar(191)
+  mission        String?
+  vision         String?
+  description    String?
+  foundedYear    Int?
+  teamSize       Int?
+  supportEmail   String?  @db.VarChar(191)
+  supportPhone   String?  @db.VarChar(64)
+  timezone       String?  @db.VarChar(120)
+  currency       String?  @db.VarChar(10)
+  vatNumber      String?  @db.VarChar(64)
+  registerNumber String?  @db.VarChar(64)
+  street         String?  @db.VarChar(191)
+  postalCode     String?  @db.VarChar(64)
+  city           String?  @db.VarChar(120)
+  country        String?  @db.VarChar(120)
+  website        String?  @db.VarChar(255)
+  primaryColor   String?  @db.VarChar(32)
+  secondaryColor String?  @db.VarChar(32)
+  accentColor    String?  @db.VarChar(32)
+  logoFileId     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant   Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  logoFile DriveFile? @relation(fields: [logoFileId], references: [id], onDelete: SetNull)
+
+  @@index([logoFileId])
+}
+
+model GoogleDriveConnection {
+  id           String    @id @default(uuid())
+  tenantId     String
+  userId       String
+  email        String?   @db.VarChar(191)
+  displayName  String?   @db.VarChar(191)
+  avatarUrl    String?   @db.VarChar(512)
+  accessToken  String    @db.Text
+  refreshToken String?   @db.Text
+  scope        String?   @db.Text
+  tokenType    String?   @db.VarChar(32)
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@index([tenantId])
+  @@index([userId])
+}
